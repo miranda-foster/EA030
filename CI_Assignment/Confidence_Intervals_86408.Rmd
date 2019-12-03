@@ -1,0 +1,162 @@
+---
+title: '? Confidence Intervals ?'
+author: '86408'
+date: "10/09/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## What is a confidence interval?
+
+-The 95% confidence interval *defines a range of values* that you can be *95% certain* contains the population mean.
+
+**Confidence levels correspond to the percentage of area under the normal distribution curve.** 
+
+* A _0.90 confidence interval_ would include _90% of the curve's area_, and the probability of observing a value outside of the confidence interval would be _*0.10*_.
+* A _0.95 confidence interval_ would include _95% of the curve's area_, and the probabilty of an observation outside of the confidence interval would be _*0.05*_.
+
+## How do we use confidence intervals?
+
+* For practical purposes, we study “samples” and extrapolate results to the population from where the sample is drawn. 
+
+* The purpose of statistical inference is to estimate population parameters using observed sample data without having to actually study the whole population. 
+
+* A **95% confidence interval (95% CI)**  is a population parameter expressed as a range that contains the true population parameter 95% of the times. 2.5% of the values will be below and 2.5% of the times above this range.
+
+* The confidence interval helps gauge how adequately a sample represents the population.
+
+* A confidence interval indicates the range that’s likely to contain the true population parameter, so the confidence interval focuses on the population.
+
+## Creating a Vector
+```{r vector1}
+(randomVector = round(rnorm(5, mean=10, sd=1), 2))
+```
+## Generating a Sample
+```{r Vector Sample}
+(vectorSample = sample(randomVector))
+(sampleMean = mean(vectorSample))
+(sampleSD = sd(vectorSample))
+```
+
+
+
+## How to Calculate a Confidence Interval
+
+#### When the population variance is *known*, use Figure 1. 
+
+#### When the population variance is *unknown*, use Figure 2. 
+
+
+
+
+![Equation with Known Variance](~/github/Mir_Beginnersluck/CI_Assignment/Confidence_Intervals_86408_files/known_variance.png)
+
+![Equation](~/github/Mir_Beginnersluck/CI_Assignment/Confidence_Intervals_86408_files/unknown_variance.png)
+
+## Calculating Confidence Intervals with Unknown Variance
+
+```{r Confidence Intervals w Unknown Variance}
+#sesm: standard error of sample mean
+#ucl: upper confidence level
+#lcl: lower confidence level
+#ci: confidence interval
+
+confidenceLevel = function(sample, t, s){
+  sesm = s/sqrt(length(sample))
+  ucl = mean(sample)-qt((1-t/2)/2, 4)*sesm
+  lcl = mean(sample)+qt((1-t/2)/2, 4)*sesm
+  ci = c(lcl, ucl)
+  return(ci)
+}
+#Confidence Level 0.95
+(confidenceLevel95_vectorSample = confidenceLevel(vectorSample, 0.95, sd(randomVector)))
+
+#Confidence Level 0.90
+(confidenceLevel90_vectorSample = confidenceLevel(vectorSample, 0.9, sd(randomVector)))
+
+
+
+```
+
+## Probability Distribution with Confidence Intervals
+
+### Normal Distribution with 90% and 95% Confidence Intervals
+
+*90% Confidence Interval represented in blue*
+
+*95% Confidence Interval represented in green*
+
+*Sample Mean represented in pink*
+
+```{r Confidence Plot, echo=FALSE}
+xvalues = seq(8,13, .01)
+yvalues = dnorm(xvalues, mean(randomVector), sd(randomVector))
+plot(xvalues, yvalues, type ='l')
+abline(v=mean(vectorSample), col='pink')
+abline(v=confidenceLevel90_vectorSample[1], col='blue')
+abline(v=confidenceLevel90_vectorSample[2], col='blue')
+abline(v=confidenceLevel95_vectorSample[1], col='green')
+abline(v=confidenceLevel95_vectorSample[2], col='green')
+```
+
+### Normal Distribution with Shaded 90% and 95% Confidence Intervals 
+
+*90% Confidence Interval represented in blue*
+
+*95% Confidence Interval represented in green*
+
+*Sample Mean represented in pink*
+
+```{r 90 and 95 CL shaded, echo=FALSE}
+xvalues = seq(8,13, .01)
+yvalues = dnorm(xvalues, mean(randomVector), sd(randomVector))
+cl90_1 = confidenceLevel90_vectorSample[1]
+cl90_2 = confidenceLevel95_vectorSample[2]
+plot(xvalues, yvalues, type ='l')
+abline(v=mean(vectorSample), col='pink')
+abline(v=cl90_1, col='blue')
+abline(v=cl90_2, col='blue')
+polygon(c( xvalues[xvalues<=cl90_1], cl90_1), c(yvalues[xvalues<=cl90_1], 0.01), col="light blue")
+polygon(c( xvalues[xvalues>=cl90_2], cl90_2), c(yvalues[xvalues>=cl90_2], 0.01), col="light blue")
+
+cl95_1 = confidenceLevel95_vectorSample[1]
+cl95_2 = confidenceLevel95_vectorSample[2]
+plot(xvalues, yvalues, type ='l')
+abline(v=mean(vectorSample), col='pink')
+abline(v=cl95_1, col='green')
+abline(v=cl95_2, col='green')
+polygon(c( xvalues[xvalues<=cl95_1], cl95_1), c(yvalues[xvalues<=cl95_1], 0.01), col="light green")
+polygon(c( xvalues[xvalues>=cl95_2], cl95_2), c(yvalues[xvalues>=cl95_2], 0.01), col="light green")
+```
+
+### Comparative Normal Distribution with Shaded 90% and 95% Confidence Intervals
+
+*90% Confidence Interval represented in blue*
+
+*95% Confidence Interval represented in green*
+
+*Sample Mean represented in pink*
+
+```{r compared CIs, echo=FALSE}
+xvalues = seq((mean(randomVector)-0.4), (mean(randomVector)+0.4), .0001)
+yvalues = dnorm(xvalues, mean(randomVector), sd(randomVector))
+cl90_1 = confidenceLevel90_vectorSample[1]
+cl90_2 = confidenceLevel90_vectorSample[2]
+cl95_1 = confidenceLevel95_vectorSample[1]
+cl95_2 = confidenceLevel95_vectorSample[2]
+
+plot(xvalues, yvalues, type ='l')
+polygon(c( xvalues[xvalues<=cl90_1], cl90_1), c(yvalues[xvalues<=cl90_1], 0.575), col="light blue")
+polygon(c( xvalues[xvalues>=cl90_2], cl90_2), c(yvalues[xvalues>=cl90_2], 0.575), col="light blue")
+polygon(c( xvalues[xvalues<=cl95_1], cl95_1), c(yvalues[xvalues<=cl95_1], 0.575), col="light green")
+polygon(c( xvalues[xvalues>=cl95_2], cl95_2), c(yvalues[xvalues>=cl95_2], 0.575), col="light green")
+abline(v=mean(vectorSample), col='pink')
+abline(v=cl90_1, col='blue')
+abline(v=cl90_2, col='blue')
+abline(v=cl95_1, col='green')
+abline(v=cl95_2, col='green')
+
+```
+
